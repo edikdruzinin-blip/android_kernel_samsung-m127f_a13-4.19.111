@@ -142,6 +142,14 @@ jobs:
         # Fix usb_notifier.c psy_do_property
         echo "aW1wb3J0IG9zCmYgPSAnZHJpdmVycy91c2Ivbm90aWZ5L3VzYl9ub3RpZmllci5jJwppZiBvcy5wYXRoLmV4aXN0cyhmKToKICAgIHNyYyA9IG9wZW4oZikucmVhZCgpCiAgICBzdHViID0gKAogICAgICAgICcjaWZuZGVmIHBzeV9kb19wcm9wZXJ0eScgKyBjaHIoMTApICsKICAgICAgICAnLyogcHN5X2RvX3Byb3BlcnR5OiBTYW1zdW5nIGJhdHRlcnkgbWFjcm8gLSBzdHViYmVkIChubyBiYXR0ZXJ5IGRyaXZlciBpbiBPU1MpICovJyArIGNocigxMCkgKwogICAgICAgICcjZGVmaW5lIHBzeV9kb19wcm9wZXJ0eShuYW1lLCBmdW5jLCBwcm9wLCB2YWwpIGRvIHt9IHdoaWxlICgwKScgKyBjaHIoMTApICsKICAgICAgICAnI2VuZGlmJyArIGNocigxMCkKICAgICkKICAgIGlmICdwc3lfZG9fcHJvcGVydHknIGluIHNyYyBhbmQgJ2RlZmluZSBwc3lfZG9fcHJvcGVydHknIG5vdCBpbiBzcmM6CiAgICAgICAgb3BlbihmLCAndycpLndyaXRlKHN0dWIgKyBzcmMpCiAgICAgICAgcHJpbnQoJ3VzYl9ub3RpZmllci5jOiBhZGRlZCBwc3lfZG9fcHJvcGVydHkgbm8tb3Agc3R1YicpCiAgICBlbHNlOgogICAgICAgIHByaW50KCd1c2Jfbm90aWZpZXIuYzogcHN5X2RvX3Byb3BlcnR5IGFscmVhZHkgaGFuZGxlZCcpCg==" | base64 -d | python3
 
+        # Fix usb_hw_param.h syntax error (missing comma)
+        sed -i '/enum usb_hw_param_type {/,/};/ s/^\([[:space:]]*[^,]\)};$/\1, };/' include/linux/usb_hw_param.h || true
+
+        # Comment out original i2c_data definition to avoid redefinition with our stub
+        find drivers/video/fbdev/exynos -name "*.h" -exec grep -l "struct i2c_data" {} \; | while read f; do
+            sed -i '/struct i2c_data {/,/};/ s/^/\/\//' "$f"
+        done
+
         echo "Samsung build fixes applied"
 
     - name: Apply KernelSU patch
