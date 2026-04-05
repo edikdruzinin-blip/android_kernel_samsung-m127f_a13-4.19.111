@@ -116,7 +116,15 @@ jobs:
         # Fix shub_iio.c missing include
         echo "aW1wb3J0IG9zCmYgPSAnZHJpdmVycy9zZW5zb3JodWIvY29tbS9zaHViX2lpby5jJwppZiBvcy5wYXRoLmV4aXN0cyhmKToKICAgIHNyYyA9IG9wZW4oZikucmVhZCgpCiAgICBpbmMgPSAnI2luY2x1ZGUgPGxpbnV4L2lpby9idWZmZXIuaD4nCiAgICBpZiBpbmMgbm90IGluIHNyYzoKICAgICAgICBvcGVuKGYsJ3cnKS53cml0ZShpbmMgKyBjaHIoMTApICsgc3JjKQogICAgICAgIHByaW50KCdzaHViX2lpby5jOiBhZGRlZCBpaW8vYnVmZmVyLmggaW5jbHVkZScpCiAgICBlbHNlOgogICAgICAgIHByaW50KCdzaHViX2lpby5jOiBhbHJlYWR5IGhhcyBpaW8vYnVmZmVyLmgnKQo=" | base64 -d | python3
 
-        # Fix panel i2c_data stub
+        # Fix usb_hw_param.h syntax error (missing comma in enum)
+        sed -i '/enum usb_hw_param_type {/,/};/ s/^\([[:space:]]*[^,]\)};$/\1, };/' include/linux/usb_hw_param.h || true
+
+        # Comment out original i2c_data struct definitions to avoid redefinition with our stub
+        find drivers/video/fbdev/exynos -name "*.h" -exec grep -l "struct i2c_data" {} \; | while read f; do
+            sed -i '/struct i2c_data {/,/};/ s/^/\/\//' "$f"
+        done
+
+                # Fix panel i2c_data stub
         echo "aW1wb3J0IG9zCgpTVFVCID0gKAogICAgIiNpZm5kZWYgX19QQU5FTF9JMkNfREFUQV9TVFVCX18iICsgY2hyKDEwKSArCiAgICAiI2RlZmluZSBfX1BBTkVMX0kyQ19EQVRBX1NUVUJfXyIgKyBjaHIoMTApICsKICAgICJzdHJ1Y3QgaTJjX2RhdGEgeyIgKyBjaHIoMTApICsKICAgICIgICAgdW5zaWduZWQgY2hhciBhZGRyOyIgKyBjaHIoMTApICsKICAgICIgICAgdW5zaWduZWQgaW50IHNpemU7IiArIGNocigxMCkgKwogICAgIiAgICB1bnNpZ25lZCBjaGFyICpidWY7IiArIGNocigxMCkgKwogICAgIn07IiArIGNocigxMCkgKwogICAgIiNlbmRpZiIgKyBjaHIoMTApICsgY2hyKDEwKQopCgpmb3Igcm9vdCwgZGlycywgZmlsZXMgaW4gb3Mud2FsaygiZHJpdmVycy92aWRlby9mYmRldi9leHlub3MvcGFuZWwiKToKICAgIGZvciBmbiBpbiBmaWxlczoKICAgICAgICBpZiAiX2kyYyIgaW4gZm4gYW5kIGZuLmVuZHN3aXRoKCIuaCIpOgogICAgICAgICAgICBmcCA9IG9zLnBhdGguam9pbihyb290LCBmbikKICAgICAgICAgICAgdHJ5OgogICAgICAgICAgICAgICAgc3JjID0gb3BlbihmcCkucmVhZCgpCiAgICAgICAgICAgIGV4Y2VwdDoKICAgICAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgICAgIGlmICJfX1BBTkVMX0kyQ19EQVRBX1NUVUJfXyIgbm90IGluIHNyYyBhbmQgInN0cnVjdCBpMmNfZGF0YSIgaW4gc3JjOgogICAgICAgICAgICAgICAgb3BlbihmcCwgInciKS53cml0ZShTVFVCICsgc3JjKQogICAgICAgICAgICAgICAgcHJpbnQoZnAgKyAiOiBhZGRlZCBpMmNfZGF0YSBzdHViIikKcHJpbnQoInBhbmVsX2kyYyBzdHViIGRvbmUiKQo=" | base64 -d | python3
 
         # Fix panel i2c_data assignments
@@ -141,14 +149,6 @@ jobs:
 
         # Fix usb_notifier.c psy_do_property
         echo "aW1wb3J0IG9zCmYgPSAnZHJpdmVycy91c2Ivbm90aWZ5L3VzYl9ub3RpZmllci5jJwppZiBvcy5wYXRoLmV4aXN0cyhmKToKICAgIHNyYyA9IG9wZW4oZikucmVhZCgpCiAgICBzdHViID0gKAogICAgICAgICcjaWZuZGVmIHBzeV9kb19wcm9wZXJ0eScgKyBjaHIoMTApICsKICAgICAgICAnLyogcHN5X2RvX3Byb3BlcnR5OiBTYW1zdW5nIGJhdHRlcnkgbWFjcm8gLSBzdHViYmVkIChubyBiYXR0ZXJ5IGRyaXZlciBpbiBPU1MpICovJyArIGNocigxMCkgKwogICAgICAgICcjZGVmaW5lIHBzeV9kb19wcm9wZXJ0eShuYW1lLCBmdW5jLCBwcm9wLCB2YWwpIGRvIHt9IHdoaWxlICgwKScgKyBjaHIoMTApICsKICAgICAgICAnI2VuZGlmJyArIGNocigxMCkKICAgICkKICAgIGlmICdwc3lfZG9fcHJvcGVydHknIGluIHNyYyBhbmQgJ2RlZmluZSBwc3lfZG9fcHJvcGVydHknIG5vdCBpbiBzcmM6CiAgICAgICAgb3BlbihmLCAndycpLndyaXRlKHN0dWIgKyBzcmMpCiAgICAgICAgcHJpbnQoJ3VzYl9ub3RpZmllci5jOiBhZGRlZCBwc3lfZG9fcHJvcGVydHkgbm8tb3Agc3R1YicpCiAgICBlbHNlOgogICAgICAgIHByaW50KCd1c2Jfbm90aWZpZXIuYzogcHN5X2RvX3Byb3BlcnR5IGFscmVhZHkgaGFuZGxlZCcpCg==" | base64 -d | python3
-
-        # Fix usb_hw_param.h syntax error (missing comma)
-        sed -i '/enum usb_hw_param_type {/,/};/ s/^\([[:space:]]*[^,]\)};$/\1, };/' include/linux/usb_hw_param.h || true
-
-        # Comment out original i2c_data definition to avoid redefinition with our stub
-        find drivers/video/fbdev/exynos -name "*.h" -exec grep -l "struct i2c_data" {} \; | while read f; do
-            sed -i '/struct i2c_data {/,/};/ s/^/\/\//' "$f"
-        done
 
         echo "Samsung build fixes applied"
 
